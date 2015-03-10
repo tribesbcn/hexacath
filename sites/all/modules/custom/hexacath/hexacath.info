@@ -1,0 +1,5 @@
+name = Hexacath Extras
+description = Provides a custom operations for hexacath architecture.
+package = NET Virtual
+dependencies[] = views
+core = 7.x

@@ -1,0 +1,109 @@
+/* Theme presentation for Study 01 form elements */
+div.content form#study-01-node-form fieldset.vertical-tabs-pane legend,
+div.content form#study-02-node-form fieldset.vertical-tabs-pane legend {
+  margin-bottom: 15px;
+}
+div.content form#study-01-node-form div.form-item label,
+div.content form#study-02-node-form div.form-item label {
+  display: inline-block;
+  min-width: 12px;
+  margin-right: 8px;
+}
+div.content form#study-01-node-form div.form-radios,
+div.content form#study-02-node-form div.form-radios {
+  display: inline-block;
+}
+div.content form#study-01-node-form div.form-wrapper,
+div.content form#study-02-node-form div.form-wrapper {
+  margin: 0px 5px !important;
+  _height: 35px;
+}
+div.content form#study-01-node-form div.form-type-radios div.form-type-radio,
+div.content form#study-02-node-form div.form-type-radios div.form-type-radio {
+  _border: 1px solid red;
+  display: inline-block;
+  margin: 0px 10px;
+}
+div.content form#study-01-node-form div.form-type-textfield input,
+div.content form#study-02-node-form div.form-type-textfield input {
+  _border: 1px solid red;
+  width: 100px;
+}
+div.content form#study-01-node-form div.date-padding,
+div.content form#study-02-node-form div.date-padding {
+  width: 600px;
+}
+div.content form#study-01-node-form div.form-type-date-combo div.container-inline-date,
+div.content form#study-02-node-form div.form-type-date-combo div.container-inline-date {
+  _border: 1px solid red;
+  width: 200px;
+  display: inline-block;
+}
+div.content form#study-01-node-form div.container-inline-date label,
+div.content form#study-02-node-form div.container-inline-date label {
+  display: none;
+}
+div.content form#study-01-node-form div.container-inline-date div.form-type-date-popup,
+div.content form#study-01-node-form div.container-inline-date div.date-padding,
+div.content form#study-02-node-form div.container-inline-date div.form-type-date-popup,
+div.content form#study-02-node-form div.container-inline-date div.date-padding {
+  padding: 0px;
+}
+div.content form#study-01-node-form div.container-inline-date div.date-padding div.form-item,
+div.content form#study-02-node-form div.container-inline-date div.date-padding div.form-item {
+  padding: 2px;
+}
+
+div.content form#study-01-node-form fieldset.group-blood-presure label,
+div.content form#study-02-node-form fieldset.group-blood-presure label {
+  display: none;
+}
+div.content form#study-01-node-form fieldset.group-blood-presure div.field-type-number-integer,
+div.content form#study-02-node-form fieldset.group-blood-presure div.field-type-number-integer {
+  width: 115px;
+  display: inline-block;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.field-widget-text-textfield {
+  width: 200px;
+  display: inline-block;
+  margin-top: 5px !important;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.form-type-textfield,
+div.content form#study-01-node-form fieldset#edit-group_medications div.form-type-date-combo,
+div.content form#study-02-node-form fieldset#edit-group_medications div.form-type-textfield,
+div.content form#study-02-node-form fieldset#edit-group_medications div.form-type-date-combo {
+  _border: 1px solid red;
+  float: left;
+  width: 200px;
+  display: inline-block;
+}
+div.content form#study-01-node-form fieldset.group-anticoagulation div.field-widget-options-onoff,
+div.content form#study-02-node-form fieldset.group-anticoagulation div.field-widget-options-onoff {
+  _border: 1px solid red;
+  width: 200px;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.form-type-date-combo,
+div.content form#study-02-node-form fieldset#edit-group_medications div.form-type-date-combo {
+  margin-top: -22px;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.form-type-textfield,
+div.content form#study-02-node-form fieldset#edit-group_medications div.form-type-textfield {
+  _border: 1px solid red;
+  margin: 0px 20px;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.form-type-date-popup div.form-type-textfield,
+div.content form#study-02-node-form fieldset#edit-group_medications div.form-type-date-popup div.form-type-textfield {
+  margin: 0px;
+  _border: 1px solid red;
+}
+div.content form#study-01-node-form fieldset#edit-group_medications div.field-name-field-anticoagulation-options div.form-type-radios > label,
+div.content form#study-02-node-form fieldset#edit-group_medications div.field-name-field-anticoagulation-options div.form-type-radios > label {
+  display: none;
+}
+div.content form#study-01-node-form div.form-wrapper,
+div.content form#study-02-node-form div.form-wrapper {
+  _border: 1px solid red;
+  _width: 200px;
+  _display: inline-block;
+  margin: 0px 10px;
+}

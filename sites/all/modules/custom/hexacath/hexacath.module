@@ -1,0 +1,514 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function hexacath_menu() {
+  $items = array();
+  $items['admin/studies/aware/export_xls'] = array(
+    'title' => 'Export Study data to XLS',
+    'page callback' => 'hexacath_export_xls',
+    'access arguments' => array('export cases xls'),
+    'weight' => 3,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function hexacath_form_alter(&$form, &$form_state, $form_id) {
+  // Get basic user information
+  //global $user;
+  //$user_roles = (is_array($user->roles) && count($user->roles) > 0)? $user->roles : array();
+  switch($form_id) {
+    case 'study_01_node_form':
+      _hexacath_form_alter_study_01($form, $form_state);
+      break;
+    case 'study_02_node_form':
+      _hexacath_form_alter_study_02($form, $form_state);
+      break;
+    case 'study_02_treated_node_form':
+      _hexacath_form_alter_study_02_treated($form, $form_state);
+      break;
+  }
+}
+
+/*
+ * Form alter operations for Study 01 (Hexacath Aware)
+ */
+function _hexacath_form_alter_study_01 (&$form, &$form_state) {
+  // Check if is edit operation or add
+  if (!isset($form['nid']['#value'])) {
+    // Generate automatic id for patiend ID field
+    global $user;
+    $user_full_info = user_load($user->uid);
+    //dpm($user_full_info);
+    $hospital_code = (isset($user_full_info->field_hospital_code[LANGUAGE_NONE][0]['value']))? $user_full_info->field_hospital_code[LANGUAGE_NONE][0]['value'] : '00';
+    $numeric_code = '001';
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+      ->entityCondition('bundle', 'study_01')
+      ->propertyCondition('title', $hospital_code . '-%', 'like')
+      ->propertyOrderBy('created', 'DESC')
+      ->range(0, 1);
+    $result = $query->execute();
+    if (isset($result['node'])) {
+      $items_nids = array_keys($result['node']);
+      $items = entity_load('node', $items_nids);
+      $item = reset($items);
+      if (isset($item) && isset($item->title)) {
+        $last_title = $item->title;
+        list($hosp_code, $num_code) = explode('-', $last_title);
+        $numeric_code = intval($num_code);
+        $numeric_code++;
+        if ($numeric_code < 10) {
+          $numeric_code = '00' . $numeric_code;
+        } elseif ($numeric_code < 100) {
+          $numeric_code = '0' . $numeric_code;
+        }
+      }
+    }
+    $patiend_id = $hospital_code . '-' . $numeric_code;
+    $form['title']['#default_value'] = $patiend_id;
+  }
+  
+  // Hide and block special fields.
+  $form['field_study_validated']['#access'] = FALSE;
+  $form['field_study_excluded']['#access'] = FALSE;
+  //$form['field_date']['#access'] = FALSE;
+  // Form element properties customization (Radio buttons N/A hidding)
+  // First step (General info)
+  unset($form['field_gender'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_smoking'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_diabetes_mellitus'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_diabetes_mellitus_yes'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_hypertension'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_hyperlipidaemia'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_previous_mi'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_previous_pci'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_previous_cabg'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_clinical_presentation'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_killip_class'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_location_of_mi'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_gpiib_iiia_used'][LANGUAGE_NONE]['#options']['_none']);
+  // Baseline characteristics
+  unset($form['field_vascular_approach'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_diseased_vessels'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_left_main_stenosis'][LANGUAGE_NONE]['#options']['_none']);
+  //unset($form['field_most_proximal_segment'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_acc_aha_type_lesion'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_calcification_culprit'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_severe_tortuosity'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_bifurcation_lesion'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_timi_flow_grade'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_timi_thrombus_grade'][LANGUAGE_NONE]['#options']['_none']);
+  // Data regarding thromboaspiration
+  unset($form['field_rcvr_aspiration_catheter'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_predilation_needed'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_flow_grade_after_thromboa'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_thrombus_gd_after_thromboa'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_retrieval_thrombotic_debri'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_successful_thromboaspirati'][LANGUAGE_NONE]['#options']['_none']);
+  // Stenting procedure
+  unset($form['field_direct_stenting'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_num_stents_implanted'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_first_stent_implanted'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_was_postdilation_performed'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_distal_embolization'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_no_reflow'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_use_gpiibiiia_inhibitor'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_use_thrombolytic_agent'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_stenting_end_flow_grade'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_myocardial_perfusion_grade'][LANGUAGE_NONE]['#options']['_none']);
+  // IN-Hospital outcomes
+  unset($form['field_death'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_death_type'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_reinfarction'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_target_vessel_revasculariz'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_stent_thrombosis'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_type_of_st'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_timing_of_st'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_bleeding'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_bleeding_type'][LANGUAGE_NONE]['#options']['_none']);
+  // 30 day Follow Up
+  unset($form['field_30_death'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_death_type'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_reinfarction'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_trg_vessel_revasculariz'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_stent_thrombosis'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_type_of_st'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_timing_of_st'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_bleeding'][LANGUAGE_NONE]['#options']['_none']);
+  unset($form['field_30_bleeding_type'][LANGUAGE_NONE]['#options']['_none']);
+  //dpm($form);
+  // Medications time fields modification
+  $form['field_asa_time'][LANGUAGE_NONE][0]['value']['#type'] = 'date_popup';
+  $form['field_asa_time'][LANGUAGE_NONE][0]['value']['#date_format'] = 'H:i';
+  $form['field_asa_time']['#states'] = array(
+    // Only show this field when the 'field_asa_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_asa_used[und]"]' => array('checked' => TRUE),
+      ':input[name="field_asa_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  $form['field_clopidogrel_time'][LANGUAGE_NONE][0]['value']['#type'] = 'date_popup';
+  $form['field_clopidogrel_time'][LANGUAGE_NONE][0]['value']['#date_format'] = 'H:i';
+  $form['field_clopidogrel_time']['#states'] = array(
+    // Only show this field when the 'field_clopidogrel_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_clopidogrel_used[und]"]' => array('checked' => TRUE),
+      ':input[name="field_clopidogrel_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  $form['field_ticagrelor_time'][LANGUAGE_NONE][0]['value']['#type'] = 'date_popup';
+  $form['field_ticagrelor_time'][LANGUAGE_NONE][0]['value']['#date_format'] = 'H:i';
+  $form['field_ticagrelor_time']['#states'] = array(
+    // Only show this field when the 'field_asa_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_ticagrelor_used[und]"]' => array('checked' => TRUE),
+      ':input[name="field_ticagrelor_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  $form['field_prasugrel_time'][LANGUAGE_NONE][0]['value']['#type'] = 'date_popup';
+  $form['field_prasugrel_time'][LANGUAGE_NONE][0]['value']['#date_format'] = 'H:i';
+  $form['field_prasugrel_time']['#states'] = array(
+    // Only show this field when the 'field_asa_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_prasugrel_used[und]"]' => array('checked' => TRUE),
+      ':input[name="field_prasugrel_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  $form['field_acgl_heparin_time'][LANGUAGE_NONE][0]['value']['#type'] = 'date_popup';
+  $form['field_acgl_heparin_time'][LANGUAGE_NONE][0]['value']['#date_format'] = 'H:i';
+  $form['field_acgl_heparin_time']['#states'] = array(
+    // Only show this field when the 'field_asa_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_acgl_heparin_used[und]"]' => array('checked' => TRUE),
+      ':input[name="field_acgl_heparin_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  //dpm($form);
+  //dpm($form['field_asa_time']);
+  
+  // '#type' => 'date_popup',
+  // '#date_format' => 'g:i a',
+  
+  // CUSTOMIZATION FOR FIELDS COMMENTS AND IMAGES
+  //$form['field_left_main_stenosis']['#suffix'] = '<div class="description">
+  $form['field_most_proximal_segment'][LANGUAGE_NONE]['#description'] = '
+  Culprit segment<br/><img src="/sites/default/files/culprit-segment.png" />';
+  //</div>';
+  //$form['field_acc_aha_type_lesion']['#suffix'] = '<div class="description">
+  $acc_aha_type_lesion_html = '
+  <table border="0" class="field_acc_aha_type_lesion-table">
+    <tr>
+      <td colspan="2"><b>Type A</b>:</td>
+    </tr>
+    <tr>
+      <td><p>< 10mm length<br/>Concentric<br/>Readily accessible<br/>Non angulated segment (<45o)<br/>Smooth contour</p></td>
+      <td><p>Little or no calcification<br/>Less than totally occlusive<br/>Not ostial in location<br/>No major branch involvement<br/>Absence of thrombus</p></td>
+    </tr>
+    <tr>
+      <td colspan="2"><b>Type B</b>: (<b>B1</b>: 1 characteristic. <b>B2</b>:>1 characteristic)</td>
+    </tr>
+    <tr>
+      <td><p>10-20 mm length<br/>Eccentric<br/>Moderate tortuosity of proximal segment<br/>Moderately angulated segment, (45-90o)<br/>Irregular contour</p></td>
+      <td><p>Moderate to heavy calcification<br/>Ostial in location<br/>Total occlusion <3 months old<br/>Bifurcation lesions requiring double guidewires<br/>Some thrombus present</p></td>
+    </tr>
+    <tr>
+      <td colspan="2"><b>Type C</b>:</td>
+    </tr>
+    <tr>
+      <td><p>>20 mm length<br/>Excessive tortuosity of proximal segment<br/>Extremely angulated segments>90°</p></td>
+      <td><p>Total occlusion>3 months old<br/>Inability to protect major side branches<br/>Degenerated vein grafts with friable lesions</p></td>
+    </tr>
+  </table>';
+  $form['field_acc_aha_type_lesion'][LANGUAGE_NONE]['#description'] = $acc_aha_type_lesion_html;
+  //</div>';
+  //$form['field_timi_thrombus_grade']['#suffix'] = '<div class="description">
+  $timi_thrombus_grade_html = '
+  <ul>
+    <li>Grade 0: no angiographic characteristics of thrombus.</li>
+    <li>Grade 1: suggestive but not diagnostic of thrombus (reduced contrast density, haziness, or irregular lesion contour or a smooth convex “meniscus” at the site of the lesion).</li>
+    <li>Grade 2: definite thrombus, with greatest dimensions ≤½ the vessel diameter.</li>
+    <li>Grade 3: definite thrombus, with greatest dimension > ½ the vessel diameter but <2 vessel diameters.</li>
+    <li>Grade 4: definite thrombus, with greatest dimension ≥2 vessel diameters.</li>
+    <li>Grade 5: total occlusion.</li>
+  </ul>';
+  $form['field_timi_thrombus_grade'][LANGUAGE_NONE]['#description'] = $timi_thrombus_grade_html;
+  //</div>';
+  //$form['field_myocardial_perfusion_grade']['#suffix'] = '<div class="description">
+  $myocardial_perfusion_grade_html = '
+  <ul>
+    <li>Grade 0: Failure of dye to enter the microvasculature. Either minimal or no ground-glass appearance (“blush”) or opacification of the myocardium.</li>
+    <li>Grade 1: Dye slowly enters but fails to exit the microvasculature. Opacification of the myocardium fails to clear from  the microvasculature, and dye staining is present on the next injection (~30 seconds between injections).</li>
+    <li>Grade 2: Delayed entry and exit of dye from the microvasculature. Opacification of the myocardium that is strongly persistent at the end of the washout phase (ie, dye is strongly persistent after 3 cardiac cycles of the washout phase and either does not or only minimally  diminishes in intensity during washout).</li>
+    <li>Grade 3: Normal entry and exit of dye from the  microvasculature. Blush that is of only mild intensity throughout the washout phase but fades  minimally is also classified as grade 3.</li>
+  </ul>';
+  $form['field_myocardial_perfusion_grade'][LANGUAGE_NONE]['#description'] = $myocardial_perfusion_grade_html;
+  //</div>';
+  //$form['field_type_of_st']['#suffix'] = '<div class="description">
+  $type_of_st_html = '
+  <b>Definite stent thrombosis</b>
+  <ul>
+    <li>Angiographic confirmation of stent thrombosis and presence of at least 1 of the following criteria within a 48-hour time window:
+      <ul>
+        <li>Acute onset of ischemic symptoms at rest</li>
+        <li>New ischemic ECG changes that suggest acute ischemia</li>
+        <li>Typical rise and fall in cardiac biomarkers</li>
+      </ul>
+    </li>
+    <li>Pathological confirmation of stent thrombosis</li>
+  </ul>
+  <b>Probable stent thrombosis</b>
+  <ul>
+    <li>Any unexplained death within the first 30 days</li>
+    <li>Irrespective of the time after the index procedure, any MI that is related to documented acute ischemia in the territory of the implanted stent without angiographic confirmation of stent thrombosis</li>
+  </ul> 
+  <b>Possible stent thrombosis</b>
+  <ul>
+    <li>Any unexplained death from 30 days after coronary stenting</li>
+  </ul>';
+  $form['field_type_of_st'][LANGUAGE_NONE]['#description'] = $type_of_st_html;
+  $form['field_30_type_of_st'][LANGUAGE_NONE]['#description'] = $type_of_st_html;
+  //</div>';
+  //$form['field_timing_of_st']['#suffix'] = '<div class="description">
+  $timing_of_st_html = '
+  Stent Thrombosis: Timing
+  <ul>
+    <li>Acute stent thrombosis:  0 to 24 hours after stent implantation</li>
+    <li>Subacute stent thrombosis: >24 hours to 30 days after stent implantation</li>
+    <li>Late stent thrombosis: > 30 days to 1 year after stent implantation</li>
+    <li>Very late stent thrombosis: > 1 year after stent implantation</li>
+  </ul>';
+  $form['field_timing_of_st'][LANGUAGE_NONE]['#description'] = $timing_of_st_html;
+  $form['field_30_timing_of_st'][LANGUAGE_NONE]['#description'] = $timing_of_st_html;
+  //</div>';
+  //$form['field_bleeding_type']['#suffix'] = '<div class="description">
+  $bleeding_type_html = '
+  <ul>
+    <li>Type 0: no bleeding</li>
+    <li>Type 1: bleeding that is not actionable and does not cause the patient to seek unscheduled performance of studies, hospitalization, or treatment by a healthcare professional</li>
+    <li>Type 2: any overt, actionable sign of hemorrhage that does not fit the criteria for type 3, 4, or 5 but does meet at least one of the following criteria: (1) requiring nonsurgical, medical intervention by a healthcare professional, (2) leading to hospitalization or increased level of care, or (3) prompting evaluation</li>
+    <li>Type 3
+    <ul>
+      <li>Type 3a
+      <ul>
+        <li>Overt bleeding plus hemoglobin drop of 3 to <5 g/dL</li> 
+        <li>Any transfusion with overt bleeding</li>
+      </ul>
+      </li>
+      <li>Type 3b
+      <ul>
+        <li>Overt bleeding plus hemoglobin drop ≥5 g/dL</li> 
+        <li>Cardiac tamponade</li>
+        <li>Bleeding requiring surgical intervention for control (excluding dental/nasal/skin/hemorrhoid)</li>
+        <li>Bleeding requiring intravenous vasoactive agents</li>
+      </ul>
+      </li>
+      <li>Type 3c
+      <ul>
+        <li>Intracranial hemorrhage (does not include microbleeds or hemorrhagic transformation, does include intraspinal)</li>
+        <li>Subcategories confirmed by autopsy or imaging or lumbar puncture</li> 
+        <li>Intraocular bleed compromising vision</li>
+      </ul>
+      </li>
+    </ul>
+    </li>
+    <li>Type 4: CABG-related bleeding
+    <ul>
+      <li>Perioperative intracranial bleeding within 48 h</li>
+      <li>Reoperation after closure of sternotomy for the purpose of controlling bleeding</li>
+      <li>Transfusion of ≥5 U whole blood or packed red blood cells within a 48-h period</li>
+      <li>Chest tube output ≥2L within a 24-h period</li>
+    </ul>
+    </li>
+    <li>Type 5: fatal bleeding
+    <ul>
+      <li>Type 5a: Probable fatal bleeding; no autopsy or imaging confirmation but clinically suspicious</li>
+      <li>Type 5b: Definite fatal bleeding; overt bleeding or autopsy or imaging confirmation</li>
+    </ul>
+    </li>
+  </ul>';
+  $form['field_bleeding_type'][LANGUAGE_NONE]['#description'] = $bleeding_type_html;
+  $form['field_30_bleeding_type'][LANGUAGE_NONE]['#description'] = $bleeding_type_html;
+  //</div>';
+  //$form['field_timing_of_st']['#suffix'] = '<div class="description"></div>';
+  
+  // Create new submit button with validate funcionality
+  $form['actions']['submit']['#value'] = t('Save as draft');
+  $form['actions']['hexacath_submit'] = array(
+    '#type' => 'submit',
+    '#access' => TRUE,
+    '#value' => t('Save'),
+    '#weight' => 6,
+    '#submit' => array('hexacath_study_form_submit'),
+    '#element_validate' => array('hexacath_study_aware_form_validate'),
+  );
+  
+  //$form['#submit'][] = 'hexacath_study_form_submit';
+  
+  //dpm($form);
+  //$form['actions']['hexacath_submit']['#submit'][] = 'hexacath_study_form_submit';
+  //dpm($form['actions']);
+  
+  // Custom validation
+  //$form['#validate'][] = 'hexacath_study_aware_form_validate';
+  //dpm($form['#validate']);
+  
+  // Add conditional ajax JS to form (not supported for conditional_fields)
+  $form['#attached']['js'][] = drupal_get_path('module', 'hexacath') . '/js/aware_form.js';
+  //dpm($form);
+  //dpm($form_state);
+  
+}
+
+/*
+hook_inline_entity_form_entity_form_alter
+*/
+
+/*
+ * Form alter operations for Study 02 (Hexacath Tres-20)
+ */
+function _hexacath_form_alter_study_02 (&$form, &$form_state) {
+  //dpm($form_state);
+  
+  
+  //CUSTOMIZATION FOR FIELDS COMMENTS AND IMAGES
+  
+  
+  $number_lesions_item = (isset($form['field_number_of_lesions'][LANGUAGE_NONE]))? $form['field_number_of_lesions'][LANGUAGE_NONE] : 0;
+  $number_lesions = $number_lesions_item['#default_value'];
+  
+  //$entity_test_01 = $form['field_treated_fields'][LANGUAGE_NONE]['entities'][0];
+  //$entity_test_02 = $form['field_treated_fields'][LANGUAGE_NONE]['entities'][1];
+  //$entity_test_03 = $form['field_treated_fields'][LANGUAGE_NONE]['entities'][2];
+  
+  //$form['field_treated_fields'][LANGUAGE_NONE]['entities'][] = $entity_test_01;
+  //$form['field_treated_fields'][LANGUAGE_NONE]['entities'][] = $entity_test_02;
+  //$form['field_treated_fields'][LANGUAGE_NONE]['entities'][] = $entity_test_03;
+  
+  
+  //unset($form['field_number_of_lesions'][LANGUAGE_NONE]['#options']['_none']);
+  
+  
+  $form['field_number_of_treated'][LANGUAGE_NONE]['#ajax'] = array(
+      'callback' => '_hexacath_toogle_treated',
+  );
+  // */
+  
+  /*
+  $form['field_treated_fields']['#states'] = array(
+    // Only show this field when the 'field_clopidogrel_used' checkbox is enabled.
+    'visible' => array(
+      ':input[name="field_number_of_lesions[und]"]' => array('value' => TRUE),
+      //':input[name="field_clopidogrel_dose[und][0][value]"]' => array('!empty', TRUE),
+      //':input[name="field_date[und][0][#value][value]"]' => array('!empty', TRUE),
+    ),
+  );
+  // */
+  
+  //dpm($form);
+  //dpm($form_state);
+  //dpm($entity_test_01);
+}
+
+function _hexacath_form_alter_study_02_treated(&$form, &$form_state) {
+  $form['field_most_proximal_segment'][LANGUAGE_NONE]['#description'] = '
+  Culprit segment<br/><img src="/sites/default/files/culprit-segment.png" />';
+  $acc_aha_type_lesion_html = '
+  <table border="0" class="field_acc_aha_type_lesion-table">
+    <tr>
+      <td colspan="2"><b>Type A</b>:</td>
+    </tr>
+    <tr>
+      <td><p>< 10mm length<br/>Concentric<br/>Readily accessible<br/>Non angulated segment (<45o)<br/>Smooth contour</p></td>
+      <td><p>Little or no calcification<br/>Less than totally occlusive<br/>Not ostial in location<br/>No major branch involvement<br/>Absence of thrombus</p></td>
+    </tr>
+    <tr>
+      <td colspan="2"><b>Type B</b>: (<b>B1</b>: 1 characteristic. <b>B2</b>:>1 characteristic)</td>
+    </tr>
+    <tr>
+      <td><p>10-20 mm length<br/>Eccentric<br/>Moderate tortuosity of proximal segment<br/>Moderately angulated segment, (45-90o)<br/>Irregular contour</p></td>
+      <td><p>Moderate to heavy calcification<br/>Ostial in location<br/>Total occlusion <3 months old<br/>Bifurcation lesions requiring double guidewires<br/>Some thrombus present</p></td>
+    </tr>
+    <tr>
+      <td colspan="2"><b>Type C</b>:</td>
+    </tr>
+    <tr>
+      <td><p>>20 mm length<br/>Excessive tortuosity of proximal segment<br/>Extremely angulated segments>90°</p></td>
+      <td><p>Total occlusion>3 months old<br/>Inability to protect major side branches<br/>Degenerated vein grafts with friable lesions</p></td>
+    </tr>
+  </table>';
+  $form['field_acc_aha_type_lesion'][LANGUAGE_NONE]['#description'] = $acc_aha_type_lesion_html;
+    
+}
+
+function _hexacath_toogle_treated($form, $form_state) {
+  drupal_set_message('Treated executed');
+}
+
+function _hexacath_toogle_stent($form, $form_state) {
+}
+
+function _hexacath_toogle_lesions($form, $form_state) {
+  $lesions_number = $form_state['build_info']['args'][0]->field_number_of_lesions[LANGUAGE_NONE][0]['value'];
+  //dpm($lesions_number);
+  $max_lesions = 5;
+  $selector = '#edit-field-treated-fields';
+  $treated_fields = $form['field_treated_fields'];
+  
+  for ($y=($max_lesions-1); $y>=0; $y--) {
+    if ($y >= $lesions_number && isset($treated_fields[LANGUAGE_NONE]['entities'][$y])) 
+      unset($treated_fields[LANGUAGE_NONE]['entities'][$y]);
+  }
+  /*
+  $treated_fields[LANGUAGE_NONE]['entities'] = array();
+  for($x = 1; $x <= $lesions_number; $x++) {
+    $entity_row = $form['field_treated_fields'][LANGUAGE_NONE]['entities'][$x-1];
+    $treated_fields[LANGUAGE_NONE]['entities'][] = $entity_row;
+  }
+  // */
+  
+  $commands = array();
+  $commands[] = ajax_command_html($selector, drupal_render($treated_fields));
+  //$commands[] = ajax_command_css($selector, array('background-color' => $color));
+  //$commands[] = ajax_command_replace("#css_status", "<div id='css_status'>Updated css_command_example to '{$color}' " . date('r') . "</div>");
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function hexacath_study_form_submit($form, &$form_state) {
+  drupal_set_message('This is my submit message');
+  /*
+  $form_id = $form['form_id']['#value'];
+  dpm($form_id);
+  switch($form_id) {
+    case 'study_01_node_form':
+      dpm($form_state);
+      // Required fields
+      if ($form_state['values']['field_gender'][LANGUAGE_NONE][0]['value'] == NULL) {
+        form_set_error('field_gender', t('Gender is a required field'));
+      }
+      break;
+  }
+  // */
+}
+
+
+function hexacath_study_aware_form_validate($form, &$form_state) {
+  /*
+  drupal_set_message('This is my validate message');
+  dpm($form);
+  // Required fields
+  if ($form_state['values']['field_gender'][LANGUAGE_NONE][0]['value'] == NULL) {
+    form_set_error('field_gender', t('Gender is a required field'));
+  }
+  // */
+}
